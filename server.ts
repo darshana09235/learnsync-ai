@@ -60,7 +60,7 @@ app.get('/api/v1/health', (_req, res) => {
     service: 'LearnSync AI Grounded Learning Service',
     timestamp: new Date().toISOString(),
     openaiConfigured: hasKey,
-    model: 'llama-3.1-8b-instant',
+    model: 'openai/gpt-oss-20b',
     database: {
       engine: 'SQLite (WAL mode)',
       fileSizeBytes: dbDiag.fileSizeBytes,
@@ -231,7 +231,7 @@ app.post('/api/v1/ai/verify-url', async (req, res) => {
     if (ai) {
       try {
         const response = await ai.chat.completions.create({
-          model: 'llama-3.1-8b-instant',
+          model: 'openai/gpt-oss-20b',
           messages: [{ role: 'system', content: `SYSTEM:
 You are an academic content validator for LearnSync AI, an active-recall study platform.
 Analyze this video's metadata and transcript:
@@ -498,7 +498,7 @@ ${segText}
 """`;
 
           const response = await ai.chat.completions.create({
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-20b',
             messages: [{ role: 'system', content: prompt }],
             response_format: { type: 'json_object' }
           });
@@ -684,7 +684,7 @@ const handleRecommendations = async (req: express.Request, res: express.Response
 Return JSON with key "recommendations": array of objects with title, resourceUrl, reasoning.`;
 
         const response = await ai.chat.completions.create({
-          model: 'llama-3.1-8b-instant',
+          model: 'openai/gpt-oss-20b',
           messages: [{ role: 'system', content: prompt }],
           response_format: { type: 'json_object' }
         });

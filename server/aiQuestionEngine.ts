@@ -114,7 +114,7 @@ Generate 3 to 4 high-quality questions matching this JSON schema exactly:
 You must output your response in JSON format.`;
 
     const genResponse = await ai.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: 'openai/gpt-oss-20b',
       messages: [{ role: 'system', content: prompt }],
       response_format: { type: 'json_object' },
     });
@@ -177,7 +177,7 @@ Return ONLY JSON:
 You must output your response in JSON format.`;
 
         const verifierRes = await ai.chat.completions.create({
-          model: 'llama-3.1-8b-instant',
+          model: 'openai/gpt-oss-20b',
           messages: [{ role: 'system', content: verifierPrompt }],
           response_format: { type: 'json_object' },
         });
