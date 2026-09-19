@@ -692,8 +692,13 @@ Return JSON with key "recommendations": array of objects with title, resourceUrl
         const rText = response.choices[0]?.message?.content;
         if (rText) {
           const parsed = JSON.parse(rText.trim());
-          const list = parsed.recommendations || parsed;
-          const mapped = (Array.isArray(list) ? list : [list]).map((item: any, i: number) => ({
+          let list = parsed.recommendations;
+          
+          if (!list || !Array.isArray(list) || list.length === 0) {
+            throw new Error('AI returned empty or invalid recommendations array');
+          }
+          
+          const mapped = list.map((item: any, i: number) => ({
             id: `rec_${Date.now()}_${i}`,
             title: item.title || 'Recommended Topic',
             channelTitle: 'LearnSync AI Guided Search',
