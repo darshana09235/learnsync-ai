@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Play, CheckCircle2, Circle, Clock, Bookmark, Plus, Sparkles, 
-  ExternalLink, RefreshCw, Send, FileText, Check, Tag, ShieldCheck, AlertTriangle 
+  ExternalLink, RefreshCw, Send, FileText, Check, Tag, ShieldCheck, AlertTriangle, Trash2
 } from 'lucide-react';
 import { CoursePlaylist, VideoItem, NoteEntry, Quiz, QuizResult, AIRecommendation, VideoSegment, GapBand } from '../types';
 import { VideoTimelinePlayer } from './VideoTimelinePlayer';
@@ -13,6 +13,7 @@ interface YouTubePlayerWorkspaceProps {
   recommendations: AIRecommendation[];
   onAddNote: (note: Omit<NoteEntry, 'id' | 'createdAt'>) => void;
   onToggleVideoCompleted: (courseId: string, videoId: string) => void;
+  onDeleteVideo?: (courseId: string, videoId: string) => void;
   onQuizSubmit: (result: QuizResult) => void;
   onImportNewCourseClick: () => void;
 }
@@ -24,6 +25,7 @@ export const YouTubePlayerWorkspace: React.FC<YouTubePlayerWorkspaceProps> = ({
   recommendations,
   onAddNote,
   onToggleVideoCompleted,
+  onDeleteVideo,
   onQuizSubmit,
   onImportNewCourseClick,
 }) => {
@@ -50,9 +52,13 @@ export const YouTubePlayerWorkspace: React.FC<YouTubePlayerWorkspaceProps> = ({
 
   useEffect(() => {
     if (course.videos.length > 0) {
-      setActiveVideo(course.videos[0]);
+      if (!activeVideo || !course.videos.find(v => v.id === activeVideo.id)) {
+        setActiveVideo(course.videos[0]);
+      }
+    } else {
+      setActiveVideo(null as any);
     }
-  }, [course]);
+  }, [course.videos, activeVideo]);
 
   // Fetch segment classification and sync quiz when active video changes
   useEffect(() => {
@@ -442,9 +448,21 @@ export const YouTubePlayerWorkspace: React.FC<YouTubePlayerWorkspaceProps> = ({
                       <span className="truncate">{vid.order}. {vid.title}</span>
                     </div>
 
-                    <span className="text-[11px] text-[#94A3B8] shrink-0">
-                      {vid.durationFormatted}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[11px] text-[#94A3B8]">
+                        {vid.durationFormatted}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteVideo?.(course.id, vid.id);
+                        }}
+                        className="p-1 rounded-md text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
+                        title="Remove video"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}

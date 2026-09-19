@@ -680,8 +680,8 @@ const handleRecommendations = async (req: express.Request, res: express.Response
 
     if (ai && weakTopics.length > 0) {
       try {
-        const prompt = `Given these weak concepts identified from quiz performance: ${JSON.stringify(weakTopics)}, generate 2 educational YouTube search query recommendations to help a student master them.
-Return JSON with key "recommendations": array of objects with title, searchQuery, reasoning.`;
+        const prompt = `Given these weak concepts identified from quiz performance: ${JSON.stringify(weakTopics)}, generate 2 highly targeted educational resources (can be a mix of specific YouTube videos, articles, documentation, or tutorials) to help a student master them.
+Return JSON with key "recommendations": array of objects with title, resourceUrl, reasoning.`;
 
         const response = await ai.chat.completions.create({
           model: 'openai/gpt-oss-20b',
@@ -693,7 +693,18 @@ Return JSON with key "recommendations": array of objects with title, searchQuery
         if (rText) {
           const parsed = JSON.parse(rText.trim());
           const list = parsed.recommendations || parsed;
-          return res.json({ recommendations: Array.isArray(list) ? list : [list] });
+          const mapped = (Array.isArray(list) ? list : [list]).map((item: any, i: number) => ({
+            id: `rec_${Date.now()}_${i}`,
+            title: item.title || 'Recommended Topic',
+            channelTitle: 'LearnSync AI Guided Search',
+            youtubeVideoId: '', 
+            resourceUrl: item.resourceUrl || `https://www.google.com/search?q=${encodeURIComponent(item.title + ' tutorial')}`,
+            thumbnailUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=500',
+            reasonTag: item.reasoning || 'Targeted Remediation',
+            weakTopicTarget: weakTopics[i % weakTopics.length] || 'Core Concept',
+            searchQuery: item.searchQuery || item.title,
+          }));
+          return res.json({ recommendations: mapped });
         }
       } catch (err: any) {
         console.error('=== GAP AI ERROR ===', err?.response?.data || err?.message || err);

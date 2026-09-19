@@ -138,6 +138,7 @@ export interface AIRecommendation {
   reasonTag: string;
   weakTopicTarget: string;
   searchQuery: string;
+  resourceUrl?: string;
 }
 
 export interface UserProfile {

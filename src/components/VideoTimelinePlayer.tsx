@@ -157,6 +157,11 @@ export const VideoTimelinePlayer: React.FC<VideoTimelinePlayerProps> = ({
     };
   }, [video.id, video.youtubeVideoId, activeIframeId]);
 
+  const onCurrentTimeChangeRef = useRef(onCurrentTimeChange);
+  useEffect(() => {
+    onCurrentTimeChangeRef.current = onCurrentTimeChange;
+  }, [onCurrentTimeChange]);
+
   // Polling playback time
   const startPolling = () => {
     stopPolling();
@@ -170,7 +175,7 @@ export const VideoTimelinePlayer: React.FC<VideoTimelinePlayerProps> = ({
           }
           if (curr !== undefined && !isNaN(curr)) {
             setCurrentTime(curr);
-            onCurrentTimeChange?.(curr, formatSeconds(curr));
+            onCurrentTimeChangeRef.current?.(curr, formatSeconds(curr));
           }
         } catch (_) {}
       }
@@ -188,7 +193,7 @@ export const VideoTimelinePlayer: React.FC<VideoTimelinePlayerProps> = ({
   const seekToSeconds = (targetSec: number) => {
     const clamped = Math.max(0, Math.min(targetSec, duration));
     setCurrentTime(clamped);
-    onCurrentTimeChange?.(clamped, formatSeconds(clamped));
+    onCurrentTimeChangeRef.current?.(clamped, formatSeconds(clamped));
     onSeekTime?.(clamped);
 
     if (playerRef.current && typeof playerRef.current.seekTo === 'function') {

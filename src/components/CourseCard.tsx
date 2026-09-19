@@ -1,13 +1,14 @@
 import React from 'react';
-import { PlayCircle, CheckCircle2, Video } from 'lucide-react';
+import { PlayCircle, CheckCircle2, Video, Trash2 } from 'lucide-react';
 import { CoursePlaylist } from '../types';
 
 interface CourseCardProps {
   course: CoursePlaylist;
   onSelectCourse: (course: CoursePlaylist) => void;
+  onDeleteCourse?: (courseId: string) => void;
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onSelectCourse }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onSelectCourse, onDeleteCourse }) => {
   const isCompleted = course.completedVideos === course.totalVideos && course.totalVideos > 0;
 
   return (
@@ -18,6 +19,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onSelectCourse }
     >
       {/* Thumbnail Banner */}
       <div className="relative aspect-video w-full overflow-hidden bg-[#0F172A]">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteCourse?.(course.id);
+          }}
+          className="absolute top-3 right-3 z-10 p-1.5 bg-black/50 hover:bg-red-500/80 rounded-md text-white backdrop-blur-md transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+          title="Delete Course"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+        
         <img
           src={course.thumbnailUrl}
           alt={course.title}

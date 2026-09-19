@@ -127,6 +127,14 @@ export default function App() {
     setIsLoggedIn(true);
   };
 
+  const handleDeleteCourse = (courseId: string) => {
+    setCourses(prev => prev.filter(c => c.id !== courseId));
+    if (selectedCourse?.id === courseId) {
+      setSelectedCourse(null);
+      setActiveTab('dashboard');
+    }
+  };
+
   const handleSignOut = () => {
     setIsLoggedIn(false);
   };
@@ -154,16 +162,51 @@ export default function App() {
     );
 
     setSelectedCourse((prev) => {
-      if (prev.id !== courseId) return prev;
+      if (prev?.id !== courseId) return prev;
       const updatedVideos = prev.videos.map((v) =>
         v.id === videoId ? { ...v, completed: !v.completed } : v
       );
+      
       const completedCount = updatedVideos.filter((v) => v.completed).length;
       return {
         ...prev,
         videos: updatedVideos,
         completedVideos: completedCount,
         progressPercent: Math.round((completedCount / updatedVideos.length) * 100),
+      };
+    });
+  };
+
+  // Delete Video
+  const handleDeleteVideo = (courseId: string, videoId: string) => {
+    setCourses((prevCourses) =>
+      prevCourses.map((c) => {
+        if (c.id !== courseId) return c;
+        const updatedVideos = c.videos.filter((v) => v.id !== videoId);
+        const completedCount = updatedVideos.filter((v) => v.completed).length;
+        const progressPercent = updatedVideos.length > 0 
+          ? Math.round((completedCount / updatedVideos.length) * 100) 
+          : 0;
+        return {
+          ...c,
+          videos: updatedVideos,
+          completedVideos: completedCount,
+          progressPercent,
+        };
+      })
+    );
+
+    setSelectedCourse((prev) => {
+      if (prev?.id !== courseId) return prev;
+      const updatedVideos = prev.videos.filter((v) => v.id !== videoId);
+      const completedCount = updatedVideos.filter((v) => v.completed).length;
+      return {
+        ...prev,
+        videos: updatedVideos,
+        completedVideos: completedCount,
+        progressPercent: updatedVideos.length > 0 
+          ? Math.round((completedCount / updatedVideos.length) * 100) 
+          : 0,
       };
     });
   };
@@ -318,6 +361,7 @@ export default function App() {
                         setSelectedCourse(selected);
                         setActiveTab('workspace');
                       }}
+                      onDeleteCourse={handleDeleteCourse}
                     />
                   ))}
                 </div>
@@ -349,6 +393,7 @@ export default function App() {
               recommendations={recommendations}
               onAddNote={handleAddNote}
               onToggleVideoCompleted={handleToggleVideoCompleted}
+              onDeleteVideo={handleDeleteVideo}
               onQuizSubmit={handleQuizSubmit}
               onImportNewCourseClick={() => setIsImportModalOpen(true)}
             />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { AIRecommendation, QuizResult } from '../types';
-import { Sparkles, ExternalLink, ArrowUpRight, AlertCircle } from 'lucide-react';
+import { Sparkles, ExternalLink, ArrowUpRight, AlertCircle, BookOpen } from 'lucide-react';
 
 interface RecommendationsViewProps {
   recommendations: AIRecommendation[];
@@ -54,23 +54,15 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({
             className="bg-white border border-[#E7E9F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
           >
             <div>
-              {/* Thumbnail */}
-              <div className="relative aspect-video bg-[#0F172A] overflow-hidden">
-                <img
-                  src={rec.thumbnailUrl}
-                  alt={rec.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
-                />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-xs text-[11px] font-semibold text-white uppercase tracking-wider">
-                  {rec.channelTitle}
+              {/* Resource Card Header */}
+              <div className="p-6 bg-gradient-to-br from-[#EEF0FE] to-[#F8FAFC] border-b border-[#E7E9F0]">
+                <div className="w-10 h-10 rounded-xl bg-white border border-[#E7E9F0] shadow-sm flex items-center justify-center mb-4">
+                  <BookOpen className="w-5 h-5 text-[#4F46E5]" />
+                </div>
+                <span className="inline-block px-2.5 py-1 rounded-md bg-[#4F46E5]/10 text-[11px] font-bold text-[#4F46E5] uppercase tracking-wider mb-2">
+                  {rec.reasonTag || 'Targeted Remediation'}
                 </span>
-              </div>
-
-              {/* Content */}
-              <div className="p-5 space-y-3">
-
-
-                <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#4F46E5] transition-colors leading-snug">
+                <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#4F46E5] transition-colors leading-snug line-clamp-3">
                   {rec.title}
                 </h3>
               </div>
@@ -79,12 +71,12 @@ export const RecommendationsView: React.FC<RecommendationsViewProps> = ({
             {/* Actions Footer */}
             <div className="p-5 pt-0 flex items-center justify-between gap-2">
               <a
-                href={`https://www.youtube.com/watch?v=${rec.youtubeVideoId}`}
+                href={rec.resourceUrl || (rec.youtubeVideoId ? `https://www.youtube.com/watch?v=${rec.youtubeVideoId}` : `https://www.google.com/search?q=${encodeURIComponent(rec.searchQuery)}`)}
                 target="_blank"
                 rel="noreferrer"
                 className="flex-1 py-2 px-3 rounded-lg bg-white hover:bg-[#F8FAFC] border border-[#E7E9F0] text-[#0F172A] text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
               >
-                <span>Watch on YouTube</span>
+                <span>View Resource</span>
                 <ExternalLink className="w-3.5 h-3.5 text-[#64748B]" />
               </a>
 
