@@ -69,6 +69,41 @@ export async function fetchYouTubeVideoDetailsAndTranscript(
 
   let rawTranscriptItems: TranscriptItem[] = [];
 
+  // Strategy 0: YouTube Data API (Secure fallback if key exists)
+  if (videoId && process.env.YOUTUBE_API_KEY) {
+    try {
+      const apiKey = process.env.YOUTUBE_API_KEY;
+      const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`;
+      const apiRes = await fetch(apiUrl, { signal: AbortSignal.timeout(4000) });
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        if (data.items && data.items.length > 0) {
+          const item = data.items[0];
+          if (item.snippet) {
+            title = decodeHtmlEntities(item.snippet.title || '');
+            authorName = decodeHtmlEntities(item.snippet.channelTitle || '');
+            description = decodeHtmlEntities(item.snippet.description || '').substring(0, 1000);
+            thumbnailUrl = item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || thumbnailUrl;
+          }
+          const durationStr = item.contentDetails?.duration;
+          if (durationStr) {
+            // Parse ISO 8601 duration (e.g., PT1H2M10S)
+            const match = durationStr.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+            if (match) {
+              const h = parseInt(match[1] || '0', 10);
+              const m = parseInt(match[2] || '0', 10);
+              const s = parseInt(match[3] || '0', 10);
+              const totalSecs = h * 3600 + m * 60 + s;
+              if (totalSecs > 0) durationSeconds = totalSecs;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('YouTube Data API metadata fetch failed:', err);
+    }
+  }
+
   // Strategy 1: Fetch YouTube Watch Page HTML to parse videoDetails & captionTracks directly
   if (videoId) {
     try {
@@ -86,7 +121,7 @@ export async function fetchYouTubeVideoDetailsAndTranscript(
 
         // Extract title from <title> tag
         const matchTitle = html.match(/<title>(.*?)<\/title>/i);
-        if (matchTitle && matchTitle[1]) {
+        if (matchTitle && matchTitle[1] && !title) {
           const raw = matchTitle[1].replace(' - YouTube', '').trim();
           if (raw) title = decodeHtmlEntities(raw);
         }
@@ -101,14 +136,14 @@ export async function fetchYouTubeVideoDetailsAndTranscript(
             const playerResponse = JSON.parse(playerResponseMatch[1]);
             const details = playerResponse.videoDetails;
             if (details) {
-              if (details.title) title = decodeHtmlEntities(details.title);
-              if (details.author) authorName = decodeHtmlEntities(details.author);
-              if (details.shortDescription) description = decodeHtmlEntities(details.shortDescription.substring(0, 1000));
-              if (details.lengthSeconds) {
+              if (details.title && !title) title = decodeHtmlEntities(details.title);
+              if (details.author && !authorName) authorName = decodeHtmlEntities(details.author);
+              if (details.shortDescription && !description) description = decodeHtmlEntities(details.shortDescription.substring(0, 1000));
+              if (details.lengthSeconds && durationSeconds === 720) {
                 const parsedDur = parseInt(details.lengthSeconds, 10);
                 if (!isNaN(parsedDur) && parsedDur > 0) durationSeconds = parsedDur;
               }
-              if (details.thumbnail?.thumbnails?.length > 0) {
+              if (details.thumbnail?.thumbnails?.length > 0 && thumbnailUrl.includes('hqdefault.jpg')) {
                 const thumbs = details.thumbnail.thumbnails;
                 thumbnailUrl = thumbs[thumbs.length - 1].url;
               }
