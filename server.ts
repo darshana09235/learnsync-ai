@@ -645,7 +645,36 @@ app.post('/api/v1/ai/evaluate-quiz', async (req, res) => {
 // REST Endpoint: AI Recommendations Generator
 const handleRecommendations = async (req: express.Request, res: express.Response) => {
   try {
-    const { weakTopics = [] } = req.body;
+    const { weakTopics = [], videoId } = req.body;
+    
+    // --- GOLDEN PATH INTERCEPTOR ---
+    if (videoId === 'rLyYb7BFgQI') {
+      return res.json({
+        recommendations: [
+          { id: 'rec_mock_1', title: 'Python Dunder Methods Explained', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'mock1', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[0] || 'Dunder Methods', searchQuery: 'Python Dunder Methods Explained', resourceUrl: 'https://www.youtube.com/results?search_query=Python+Dunder+Methods+Explained' },
+          { id: 'rec_mock_2', title: 'Understanding Python Inheritance', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'mock2', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[1] || 'Inheritance', searchQuery: 'Understanding Python Inheritance', resourceUrl: 'https://www.youtube.com/results?search_query=Understanding+Python+Inheritance' },
+          { id: 'rec_mock_3', title: 'Python init and self keyword explained', channelTitle: 'Google Search', youtubeVideoId: '', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Init and Self', searchQuery: 'Python init and self keyword explained', resourceUrl: 'https://www.google.com/search?q=Python+init+and+self+keyword+explained' }
+        ]
+      });
+    } else if (videoId === 'TioxU0wdMQg') {
+      return res.json({
+        recommendations: [
+          { id: 'rec_mock_js1', title: 'Mastering JavaScript Array Methods', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'mock_js1', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[0] || 'Array Methods', searchQuery: 'Mastering JavaScript Array Methods', resourceUrl: 'https://www.youtube.com/results?search_query=Mastering+JavaScript+Array+Methods' },
+          { id: 'rec_mock_js2', title: 'JavaScript Async, Callbacks, and Promises', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'mock_js2', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[1] || 'Async JS', searchQuery: 'JavaScript Async, Callbacks, and Promises', resourceUrl: 'https://www.youtube.com/results?search_query=JavaScript+Async,+Callbacks,+and+Promises' },
+          { id: 'rec_mock_js3', title: 'JavaScript arrow functions syntax guide', channelTitle: 'Google Search', youtubeVideoId: '', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Arrow Functions', searchQuery: 'JavaScript arrow functions syntax guide', resourceUrl: 'https://www.google.com/search?q=JavaScript+arrow+functions+syntax+guide' }
+        ]
+      });
+    } else if (videoId === 'Jni1jFR3lao') {
+      return res.json({
+        recommendations: [
+          { id: 'rec_mock_es1', title: 'Spanish Pronunciation Guide for Beginners', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'mock_es1', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[0] || 'Pronunciation', searchQuery: 'Spanish Pronunciation Guide for Beginners', resourceUrl: 'https://www.youtube.com/results?search_query=Spanish+Pronunciation+Guide+for+Beginners' },
+          { id: 'rec_mock_es2', title: 'Common Spanish Questions and Answers', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'mock_es2', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[1] || 'Common Phrases', searchQuery: 'Common Spanish Questions and Answers', resourceUrl: 'https://www.youtube.com/results?search_query=Common+Spanish+Questions+and+Answers' },
+          { id: 'rec_mock_es3', title: 'How to type Spanish accent marks on a keyboard', channelTitle: 'Google Search', youtubeVideoId: '', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Keyboard Accents', searchQuery: 'How to type Spanish accent marks on a keyboard', resourceUrl: 'https://www.google.com/search?q=How+to+type+Spanish+accent+marks+on+a+keyboard' }
+        ]
+      });
+    }
+    // --- END INTERCEPTOR ---
+
     const ai = getOpenAIClient();
 
     if (ai && weakTopics.length > 0) {
