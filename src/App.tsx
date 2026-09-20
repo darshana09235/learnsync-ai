@@ -247,10 +247,12 @@ export default function App() {
     const weakTopics = result.weakTopicsIdentified ?? [];
     if (weakTopics.length > 0) {
       try {
+        const associatedQuiz = quizzes.find((q) => q.id === result.quizId);
+        const videoId = associatedQuiz?.videoId || '';
         const res = await fetch('/api/v1/ai/recommendations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ weakTopics, videoId: activeVideoId }),
+          body: JSON.stringify({ weakTopics, videoId }),
         });
         if (res.ok) {
           const data = await res.json();
