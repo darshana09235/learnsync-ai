@@ -646,30 +646,40 @@ app.post('/api/v1/ai/evaluate-quiz', async (req, res) => {
 const handleRecommendations = async (req: express.Request, res: express.Response) => {
   try {
     const { weakTopics = [], videoId } = req.body;
+    let ytVideoId = videoId;
+
+    if (videoId && videoId.startsWith('vid_')) {
+      const db = getDatabase();
+      const allVideos = db.courses.flatMap((c: any) => c.videos);
+      const v = allVideos.find((vid: any) => vid.id === videoId);
+      if (v && v.youtubeVideoId) {
+        ytVideoId = v.youtubeVideoId;
+      }
+    }
     
     // --- GOLDEN PATH INTERCEPTOR ---
-    if (videoId === 'rLyYb7BFgQI') {
+    if (ytVideoId === 'rLyYb7BFgQI') {
       return res.json({
         recommendations: [
           { id: 'rec_mock_1', type: 'video', title: 'Python Dunder Methods Explained', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'rLyYb7BFgQI', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[0] || 'Dunder Methods', searchQuery: 'Python Dunder Methods Explained' },
           { id: 'rec_mock_2', type: 'video', title: 'Understanding Python Inheritance', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'rLyYb7BFgQI', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[1] || 'Inheritance', searchQuery: 'Understanding Python Inheritance' },
-          { id: 'rec_mock_3', type: 'search', title: 'Python init and self keyword explained', channelTitle: 'Google Search', youtubeVideoId: 'rLyYb7BFgQI', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Init and Self', searchQuery: 'Python init and self keyword explained' }
+          { id: 'rec_mock_3', type: 'search', title: 'Python init and self keyword explained', channelTitle: 'Google Search', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Init and Self', searchQuery: 'Python init and self keyword explained' }
         ]
       });
-    } else if (videoId === 'TioxU0wdMQg') {
+    } else if (ytVideoId === 'TioxU0wdMQg') {
       return res.json({
         recommendations: [
           { id: 'rec_mock_js1', type: 'video', title: 'Mastering JavaScript Array Methods', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'TioxU0wdMQg', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[0] || 'Array Methods', searchQuery: 'Mastering JavaScript Array Methods' },
           { id: 'rec_mock_js2', type: 'video', title: 'JavaScript Async, Callbacks, and Promises', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'TioxU0wdMQg', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[1] || 'Async JS', searchQuery: 'JavaScript Async, Callbacks, and Promises' },
-          { id: 'rec_mock_js3', type: 'search', title: 'JavaScript arrow functions syntax guide', channelTitle: 'Google Search', youtubeVideoId: 'TioxU0wdMQg', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Arrow Functions', searchQuery: 'JavaScript arrow functions syntax guide' }
+          { id: 'rec_mock_js3', type: 'search', title: 'JavaScript arrow functions syntax guide', channelTitle: 'Google Search', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Arrow Functions', searchQuery: 'JavaScript arrow functions syntax guide' }
         ]
       });
-    } else if (videoId === 'Jni1jFR3lao') {
+    } else if (ytVideoId === 'Jni1jFR3lao') {
       return res.json({
         recommendations: [
           { id: 'rec_mock_es1', type: 'video', title: 'Spanish Pronunciation Guide for Beginners', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'Jni1jFR3lao', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[0] || 'Pronunciation', searchQuery: 'Spanish Pronunciation Guide for Beginners' },
           { id: 'rec_mock_es2', type: 'video', title: 'Common Spanish Questions and Answers', channelTitle: 'LearnSync Recommended', youtubeVideoId: 'Jni1jFR3lao', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'Targeted Remediation', weakTopicTarget: weakTopics[1] || 'Common Phrases', searchQuery: 'Common Spanish Questions and Answers' },
-          { id: 'rec_mock_es3', type: 'search', title: 'How to type Spanish accent marks', channelTitle: 'Google Search', youtubeVideoId: 'Jni1jFR3lao', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Keyboard Accents', searchQuery: 'How to type Spanish accent marks' }
+          { id: 'rec_mock_es3', type: 'search', title: 'How to type Spanish accent marks', channelTitle: 'Google Search', thumbnailUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=500', reasonTag: 'External Resource', weakTopicTarget: weakTopics[2] || 'Keyboard Accents', searchQuery: 'How to type Spanish accent marks' }
         ]
       });
     }
