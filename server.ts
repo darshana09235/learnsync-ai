@@ -315,7 +315,7 @@ app.post('/api/v1/courses/import', async (req, res) => {
     let studySuitability: 'HIGH' | 'MODERATE' | 'LOW_SIGNAL_TRIVIAL' = 'HIGH';
     let warningMessage = hasTranscript
       ? ''
-      : 'No captions/transcript found for this YouTube video. Video imported, but grounded quiz generation is disabled until captions are available.';
+      : 'No captions/transcript found for this YouTube video. The quiz has been generated based on the video\'s title and description instead.';
     let detectedTopic = 'Technical Coursework';
     let category = 'Computer Science';
     let courseDescription = details.description
@@ -396,9 +396,9 @@ app.post('/api/v1/courses/import', async (req, res) => {
     // Save Course and Video to SQLite
     saveCourse(importedCourse);
 
-    // 2. Generate Grounded Anti-Hallucination Quiz ONLY if transcript exists
+    // 2. Generate Grounded Anti-Hallucination Quiz (now falls back to metadata if no transcript)
     let autoQuiz: Quiz | null = null;
-    if (hasTranscript) {
+    {
       const quizResult = await generateGroundedQuizWithAI(ai, {
         videoId,
         videoTitle: resolvedTitle,
@@ -457,14 +457,8 @@ app.post('/api/v1/ai/classify-segments', async (req, res) => {
     }
 
     if (!segmentsToClassify || segmentsToClassify.length === 0) {
-      // Use a generic fallback segment so classification can still proceed
-      segmentsToClassify = [{
-        segmentId: 'fallback-1',
-        startSeconds: 0,
-        endSeconds: 60,
-        transcriptText: 'Python Object-Oriented Programming (OOP) uses classes as blueprints for creating objects. The init method initializes the object attributes. The self parameter refers to the current instance of the class. Inheritance allows a new class to inherit attributes and methods from an existing class.',
-        classification: 'INSTRUCTIONAL',
-      }];
+      // Just pass an empty array, it'll return empty classifications or default to metadata downstream if needed
+      segmentsToClassify = [];
     }
 
     if (ai) {
@@ -557,19 +551,8 @@ app.post('/api/v1/ai/generate-quiz', async (req, res) => {
       }
     }
 
-    // If still no segments available, inject a generic fallback so Groq can still attempt generation
-    if (!targetSegments || targetSegments.length === 0) {
-      targetSegments = [{
-        segmentId: 'fallback-1',
-        startSeconds: 0,
-        endSeconds: 60,
-        transcriptText: 'Python Object-Oriented Programming (OOP) uses classes as blueprints for creating objects. The init method initializes the object attributes. The self parameter refers to the current instance of the class. Inheritance allows a new class to inherit attributes and methods from an existing class.',
-        classification: 'INSTRUCTIONAL',
-      }];
-    }
-
     // Adapt segment formats
-    const normalizedSegments = targetSegments.map((s: any, idx: number) => ({
+    const finalSegments = targetSegments.map((s: any, idx: number) => ({
       segmentId: s.segmentId || s.segment_id || `seg_${idx + 1}`,
       startSeconds: s.startSeconds ?? s.start_seconds ?? idx * 90,
       endSeconds: s.endSeconds ?? s.end_seconds ?? (idx + 1) * 90,
@@ -578,19 +561,6 @@ app.post('/api/v1/ai/generate-quiz', async (req, res) => {
       confidence: s.confidence,
       reason: s.reason,
     })).filter((s: any) => s.transcriptText && s.transcriptText.trim().length > 0);
-
-    // If still empty after normalization, use generic fallback so Groq can still attempt generation
-    const finalSegments = normalizedSegments.length > 0
-      ? normalizedSegments
-      : [{
-          segmentId: 'fallback-1',
-          startSeconds: 0,
-          endSeconds: 60,
-          transcriptText: 'Python Object-Oriented Programming (OOP) uses classes as blueprints for creating objects. The init method initializes the object attributes. The self parameter refers to the current instance of the class. Inheritance allows a new class to inherit attributes and methods from an existing class.',
-          classification: 'INSTRUCTIONAL',
-          confidence: 1,
-          reason: 'Fallback segment for videos without available captions.',
-        }];
 
     const quizData = await generateGroundedQuizWithAI(ai, {
       videoId,

@@ -28,15 +28,6 @@ export async function generateGroundedQuizWithAI(
     (s) => s.transcriptText && s.transcriptText.trim().length >= 5
   );
 
-  // If no transcript exists at all, FAIL LOUDLY — do NOT fabricate fake content!
-  if (usableSegments.length === 0) {
-    return {
-      questions: [],
-      skippedSegments: 0,
-      error: 'NO_TRANSCRIPT_AVAILABLE',
-    };
-  }
-
   const instructionalSegments = usableSegments.filter(
     (s) => !s.classification || s.classification === 'INSTRUCTIONAL'
   );
@@ -57,26 +48,29 @@ export async function generateGroundedQuizWithAI(
 
   try {
     // Construct rich chronological transcript windows from real spoken content
-    const transcriptDigest = candidateSegments
-      .slice(0, 10)
-      .map(
-        (s) =>
-          `[${s.startSeconds}s - ${s.endSeconds}s] (${s.segmentId || 'seg'}): "${s.transcriptText}"`
-      )
-      .join('\n\n');
+    // Fall back to title and description if no transcript is available
+    const transcriptDigest = candidateSegments.length > 0
+      ? candidateSegments
+          .slice(0, 10)
+          .map(
+            (s) =>
+              `[${s.startSeconds}s - ${s.endSeconds}s] (${s.segmentId || 'seg'}): "${s.transcriptText}"`
+          )
+          .join('\n\n')
+      : `Title: ${videoTitle}\nChannel: ${authorName}\nDescription: ${input.description || 'No description provided.'}\nTopic: ${input.detectedTopic || 'Educational Concept'}`;
 
     const prompt = `SYSTEM INSTRUCTION:
 You are an expert tutor for the specific subject matter taught in the provided video (e.g., Spanish, History, Science, etc.).
-Your mission is to produce challenging, insightful, and STRICTLY fact-grounded multiple choice questions based SOLELY on the provided video transcript text that test the user's comprehension of the educational content itself.
+Your mission is to produce challenging, insightful, and fact-grounded multiple choice questions based SOLELY on the provided video context (which may be transcript text or video metadata/description) that test the user's comprehension of the educational content.
 
   CRITICAL INSTRUCTIONS:
   1. Subject Matter Focus: Test the user's comprehension of the actual educational content.
   2. Question Phrasing: NEVER ask meta-questions about the video or timestamp (e.g., Do NOT generate 'What did the speaker say at 1:29?'). Ask direct questions about the subject itself (e.g., 'Why is the letter H silent in the word Hola?').
-  3. Grounding Mandate: Every question MUST test a specific fact or concept EXPLICITLY spoken in the provided transcript text. DO NOT use background knowledge not present in the transcript.
+  3. Grounding Mandate: Every question MUST test a specific fact or concept EXPLICITLY present in the provided context. DO NOT use background knowledge not present in the context.
   4. Plausible Distractors: The wrong answers (distractors) must be plausible, dynamically generated options related strictly to the video's actual subject matter. Completely avoid any fallback arrays or instructions related to software engineering or algorithms unless the video is explicitly about those topics.
   5. Exact Citations:
-     - "start_seconds" and "end_seconds": Exact timestamp boundaries where the concept was spoken.
-     - "excerpt": Verbatim or near-verbatim quote from the transcript proving why the correct answer is true.
+     - "start_seconds" and "end_seconds": Exact timestamp boundaries where the concept was spoken (use 0 if unavailable).
+     - "excerpt": Verbatim or near-verbatim quote from the context proving why the correct answer is true.
      - "explanation": Concrete explanation explaining why the correct choice is supported by the excerpt.
      - "topic_tag": Specific topic covered in the segment.
 
